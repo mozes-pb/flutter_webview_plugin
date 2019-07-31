@@ -32,8 +32,7 @@ class WebviewScaffold extends StatefulWidget {
     this.allowFileURLs,
     this.resizeToAvoidBottomInset = false,
     this.invalidUrlRegex,
-    this.geolocationEnabled,
-    this.debuggingEnabled = false,
+    this.geolocationEnabled
   }) : super(key: key);
 
   final PreferredSizeWidget appBar;
@@ -59,7 +58,6 @@ class WebviewScaffold extends StatefulWidget {
   final bool resizeToAvoidBottomInset;
   final String invalidUrlRegex;
   final bool geolocationEnabled;
-  final bool debuggingEnabled;
 
   @override
   _WebviewScaffoldState createState() => _WebviewScaffoldState();
@@ -81,15 +79,13 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
     _onBack = webviewReference.onBack.listen((_) async {
       if (!mounted) return;
 
-      // The willPop/pop pair here is equivalent to Navigator.maybePop(),
-      // which is what's called from the flutter back button handler.
-      final pop = await _topMostRoute.willPop();
+      // Equivalent of Navigator.maybePop(), except that [webviewReference]
+      // is closed when the pop goes ahead. Whether the pop was performed
+      // can't be determined from the return value of Navigator.maybePop().
+      final route = ModalRoute.of(context);
+      final pop = await route?.willPop();
       if (pop == RoutePopDisposition.pop) {
-        // Close the webview if it's on the route at the top of the stack.
-        final isOnTopMostRoute = _topMostRoute == ModalRoute.of(context);
-        if (isOnTopMostRoute) {
-          webviewReference.close();
-        }
+        webviewReference.close();
         Navigator.pop(context);
       }
     });
@@ -102,16 +98,6 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
         }
       });
     }
-  }
-
-  /// Equivalent to [Navigator.of(context)._history.last].
-  Route<dynamic> get _topMostRoute {
-    var topMost;
-    Navigator.popUntil(context, (route) {
-      topMost = route;
-      return true;
-    });
-    return topMost;
   }
 
   @override
@@ -155,8 +141,7 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
               appCacheEnabled: widget.appCacheEnabled,
               allowFileURLs: widget.allowFileURLs,
               invalidUrlRegex: widget.invalidUrlRegex,
-              geolocationEnabled: widget.geolocationEnabled,
-              debuggingEnabled: widget.debuggingEnabled,
+              geolocationEnabled: widget.geolocationEnabled
             );
           } else {
             if (_rect != value) {

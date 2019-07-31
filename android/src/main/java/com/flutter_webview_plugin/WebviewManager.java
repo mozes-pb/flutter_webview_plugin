@@ -15,6 +15,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.PermissionRequest;
 import android.widget.FrameLayout;
 import android.provider.MediaStore;
 import androidx.core.content.FileProvider;
@@ -243,6 +244,12 @@ class WebviewManager {
                 args.put("progress", progress / 100.0);
                 FlutterWebviewPlugin.channel.invokeMethod("onProgressChanged", args);
             }
+
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                request.grant(request.getResources());
+            }
         });
     }
 
@@ -346,8 +353,7 @@ class WebviewManager {
             boolean allowFileURLs,
             boolean useWideViewPort,
             String invalidUrlRegex,
-            boolean geolocationEnabled,
-            boolean debuggingEnabled
+            boolean geolocationEnabled
     ) {
         webView.getSettings().setJavaScriptEnabled(withJavascript);
         webView.getSettings().setBuiltInZoomControls(withZoom);
@@ -363,10 +369,7 @@ class WebviewManager {
         webView.getSettings().setAllowUniversalAccessFromFileURLs(allowFileURLs);
 
         webView.getSettings().setUseWideViewPort(useWideViewPort);
-        
-        // Handle debugging
-        webView.setWebContentsDebuggingEnabled(debuggingEnabled);
-        
+
         webViewClient.updateInvalidUrlRegex(invalidUrlRegex);
 
         if (geolocationEnabled) {
@@ -376,6 +379,12 @@ class WebviewManager {
                 public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                     callback.invoke(origin, true, false);
                 }
+
+                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                request.grant(request.getResources());
+            }
             });
         }
 
