@@ -79,6 +79,9 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
             case "cleanCookies":
                 cleanCookies(call, result);
                 break;
+            case "canGoBack":
+                canGoBack(call, result);
+                break;
             default:
                 result.notImplemented();
                 break;
@@ -248,6 +251,14 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
     private int dp2px(Context context, float dp) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
+    }
+
+    private void canGoBack(MethodCall call, final MethodChannel.Result result) {
+        if (webViewManager != null) {
+            result.success(webViewManager.canGoBack());
+        } else {
+            result.success(false);
+        }
     }
 
     @Override

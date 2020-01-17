@@ -203,6 +203,9 @@ class FlutterWebviewPlugin {
   // Stops current loading process
   Future<Null> stopLoading() async => await _channel.invokeMethod('stopLoading');
 
+  Future<bool> canGoBack() async => await _channel.invokeMethod('canGoBack');
+
+
   /// Close all Streams
   void dispose() {
     _onDestroy.close();

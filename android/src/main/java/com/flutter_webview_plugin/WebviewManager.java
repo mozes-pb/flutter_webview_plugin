@@ -121,6 +121,9 @@ class WebviewManager {
     ResultHandler resultHandler;
     Context context;
 
+    private WebChromeClient.CustomViewCallback customViewCallback;
+    private View mCustomView;
+
     WebviewManager(final Activity activity, final Context context) {
         this.webView = new ObservableWebView(activity);
         this.activity = activity;
@@ -249,6 +252,55 @@ class WebviewManager {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 request.grant(request.getResources());
+            }
+
+            // Allow switching to fullscreen e.g when playing a video
+
+            private View customView;
+            private CustomViewCallback customViewCallback;
+
+            @Override
+            public void onShowCustomView(View view, int requestedOrientation, CustomViewCallback callback) {
+                onShowCustomView(view, callback);
+            }
+
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                // if a view already exists then immediately terminate the new one
+                if (customView != null) {
+                    callback.onCustomViewHidden();
+                    return;
+                }
+
+                // add custom view to container and save reference
+                customView = view;
+                customViewCallback = callback;
+
+                FrameLayout rootView = (FrameLayout)webView.getRootView();
+                rootView.addView(customView);
+
+                // hide webview and show custom view
+                customView.setVisibility(View.VISIBLE);
+                FrameLayout contentView = (FrameLayout)rootView.findViewById(android.R.id.content);
+                contentView.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onHideCustomView() {
+                super.onHideCustomView();
+//                if (customView == null)
+//                    return;
+
+                // Hide the custom view and show Webview
+                FrameLayout rootView = (FrameLayout)webView.getRootView();
+                FrameLayout contentView = (FrameLayout)rootView.findViewById(android.R.id.content);
+                contentView.setVisibility(View.VISIBLE);
+                customView.setVisibility(View.GONE);
+
+                // Remove the custom view from its container and clear reference
+                rootView.removeView(customView);
+                customViewCallback.onCustomViewHidden();
+                customView = null;
             }
         });
     }
